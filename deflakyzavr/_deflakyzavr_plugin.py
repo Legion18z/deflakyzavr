@@ -123,7 +123,7 @@ def deflakyzavration(server, username, password, project,
         jira_epic=jira_epic,
         issue_type=issue_type,
         ticket_planned_field=planned_field,
-        duty_label=None,
+        duty_label=duty_label,
         dry_run=dry_run
     )
     client.create_duty_ticket()
