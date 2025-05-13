@@ -1,8 +1,5 @@
 import argparse
 import configparser
-import os
-
-from pygments.lexer import default
 
 from deflakyzavr._deflakyzavr_plugin import deflakyzavration
 
