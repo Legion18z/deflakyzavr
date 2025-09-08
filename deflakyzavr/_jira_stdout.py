@@ -83,7 +83,8 @@ class LazyJiraTrier:
             return JiraUnavailable()
         return issue
 
-    def create_issue_link(self, inwardIssue: str, outwardIssue: str) -> None | JiraUnavailable:
+    def create_issue_link(self, inwardIssue: str, outwardIssue: str,
+                          linkType: str = 'is linked with') -> None | JiraUnavailable:
         res = retry(delay=1, attempts=3, until=lambda x: isinstance(x, JiraUnavailable), logger=print)(self.connect)()
         if isinstance(res, JiraUnavailable):
             return res
@@ -94,7 +95,7 @@ class LazyJiraTrier:
 
         try:
             self._jira.create_issue_link(
-                type='is linked with',
+                type=linkType,
                 inwardIssue=inwardIssue,
                 outwardIssue=outwardIssue
             )
