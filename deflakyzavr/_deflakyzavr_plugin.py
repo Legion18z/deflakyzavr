@@ -153,7 +153,7 @@ def deflakyzavration(server, username, password, project,
                      duty_label=None, dry_run=False,
                      flaky_ticket_label='flaky',
                      flaky_ticket_status='Взят в бэклог',
-                     flaky_ticket_updated_field= '90d',
+                     flaky_ticket_updated_field= '-90d',
                      flaky_issue_types=[3, 5, 12900]) -> None:
     client = Deflakyzavr(
         jira_server=server,
