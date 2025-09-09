@@ -15,10 +15,11 @@ class Deflakyzavr:
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_label=None,
-                 dry_run=False, flaky_ticket_label=None,
+                 dry_run=False,
+                 flaky_ticket_label=None,
                  flaky_ticket_status=None,
-                 flaky_ticket_updated_field=None,
-                 flaky_issue_types=None) -> None:
+                 flaky_ticket_issue_types=None,
+                 flaky_ticket_updated_days_ago=None) -> None:
         self._jira_server = jira_server
         self._jira_user = username
         self._jira_password = password
@@ -33,11 +34,11 @@ class Deflakyzavr:
         self._jira_epic = jira_epic
         self._reporting_language = RU_REPORTING_LANG
         self._jira_planned_field = ticket_planned_field
+        self._dry_run = dry_run
         self._jira_flaky_ticket_label = flaky_ticket_label
         self._jira_flaky_ticket_status = flaky_ticket_status
-        self._jira_flaky_ticket_updated_field = flaky_ticket_updated_field
-        self._jira_flaky_issue_types = flaky_issue_types
-        self._dry_run = dry_run
+        self._jira_flaky_ticket_issue_types = flaky_ticket_issue_types
+        self._jira_flaky_ticket_updated_days_ago = flaky_ticket_updated_days_ago
         self._jira = LazyJiraTrier(
             self._jira_server,
             basic_auth=(self._jira_user, self._jira_password),
@@ -120,14 +121,15 @@ class Deflakyzavr:
         return issue_key
 
     def link_old_flaky_tickets_to_duty_ticket(self, duty_issue_key: str) -> None:
-        issue_types = ", ".join([f'{issue_type}' for issue_type in self._jira_flaky_issue_types])
+        issue_types = ", ".join([f'{issue_type}' for issue_type in self._jira_flaky_ticket_issue_types])
         search_prompt = (
-            f'project = {self._jira_project} '
-            f'and status = "{self._jira_flaky_ticket_status}" '
-            f'and labels = {self._jira_flaky_ticket_label} '
-            f'and updated <= {self._jira_flaky_ticket_updated_field} '
-            f'and issuetype in ({issue_types}) '
-            'ORDER BY created ASC'
+            f"project = {self._jira_project} "
+            f"and status = '{self._jira_flaky_ticket_status}' "
+            f"and labels = {self._jira_flaky_ticket_label} "
+            f"and (updated <= '-{self._jira_flaky_ticket_updated_days_ago}d' "
+            f"or issueFunction in lastComment('before -{self._jira_flaky_ticket_updated_days_ago}d')) "
+            f"and issuetype in ({issue_types}) "
+            "ORDER BY created ASC"
         )
 
         found_issues = self._jira.search_issues(jql_str=search_prompt)
@@ -151,10 +153,10 @@ def deflakyzavration(server, username, password, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
                      duty_label=None, dry_run=False,
-                     flaky_ticket_label='flaky',
-                     flaky_ticket_status='Взят в бэклог',
-                     flaky_ticket_updated_field= '-90d',
-                     flaky_issue_types=[3, 5, 12900]) -> None:
+                     flaky_ticket_label=None,
+                     flaky_ticket_status=None,
+                     flaky_ticket_issue_types=None,
+                     flaky_ticket_updated_days_ago=None) -> None:
     client = Deflakyzavr(
         jira_server=server,
         username=username,
@@ -169,8 +171,8 @@ def deflakyzavration(server, username, password, project,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
-        flaky_ticket_updated_field=flaky_ticket_updated_field,
-        flaky_issue_types=flaky_issue_types,
+        flaky_ticket_issue_types=flaky_ticket_issue_types,
+        flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
     )
     issue_key = client.create_duty_ticket()
 
