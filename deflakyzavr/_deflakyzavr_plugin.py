@@ -120,13 +120,20 @@ class Deflakyzavr:
     def link_old_flaky_tickets_to_duty_ticket(self, duty_issue_key: str) -> None:
         search_prompt = (
             f'project = {self._jira_project} '
-            f'and status = {self._jira_flaky_ticket_status}) '
+            f'and status = "{self._jira_flaky_ticket_status}" '
             f'and labels = {self._jira_flaky_ticket_label} '
             f'and updated <= {self._jira_flaky_ticket_updated_field} '
             'ORDER BY created ASC'
         )
 
         found_issues = self._jira.search_issues(jql_str=search_prompt)
+        if isinstance(found_issues, JiraUnavailable):
+            logging.warning(
+                self._reporting_language.SKIP_LINKING_TICKETS_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
+                    jira_server=self._jira_server
+                )
+            )
+            return
 
         for issue in found_issues:
             self._jira.create_issue_link(
