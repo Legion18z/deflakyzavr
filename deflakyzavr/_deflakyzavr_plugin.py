@@ -18,6 +18,7 @@ class Deflakyzavr:
                  dry_run=False,
                  flaky_ticket_label=None,
                  flaky_ticket_status=None,
+                 flaky_ticket_link_type=None,
                  flaky_ticket_issue_types=None,
                  flaky_ticket_updated_days_ago=None) -> None:
         self._jira_server = jira_server
@@ -37,6 +38,7 @@ class Deflakyzavr:
         self._dry_run = dry_run
         self._jira_flaky_ticket_label = flaky_ticket_label
         self._jira_flaky_ticket_status = flaky_ticket_status
+        self._jira_flaky_ticket_link_type = flaky_ticket_link_type
         self._jira_flaky_ticket_issue_types = flaky_ticket_issue_types
         self._jira_flaky_ticket_updated_days_ago = flaky_ticket_updated_days_ago
         self._jira = LazyJiraTrier(
@@ -145,7 +147,7 @@ class Deflakyzavr:
             self._jira.create_issue_link(
                 inwardIssue=issue.key,
                 outwardIssue=duty_issue_key,
-                linkType='has to be finished together with'
+                linkType=self._jira_flaky_ticket_link_type
             )
 
 
@@ -155,6 +157,7 @@ def deflakyzavration(server, username, password, project,
                      duty_label=None, dry_run=False,
                      flaky_ticket_label=None,
                      flaky_ticket_status=None,
+                     flaky_ticket_link_type=None,
                      flaky_ticket_issue_types=None,
                      flaky_ticket_updated_days_ago=None) -> None:
     client = Deflakyzavr(
@@ -171,6 +174,7 @@ def deflakyzavration(server, username, password, project,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
+        flaky_ticket_link_type=flaky_ticket_link_type,
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
     )

@@ -3,10 +3,12 @@ import configparser
 
 from deflakyzavr._deflakyzavr_plugin import deflakyzavration
 
+
 def read_config(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
     return config
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create a duty ticket in JIRA")
@@ -22,10 +24,16 @@ if __name__ == "__main__":
     parser.add_argument("--planned-field", help="ID of custom JIRA field for planned date", default=None)
     parser.add_argument("--duty_label", help="JIRA task label", default=None)
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
-    parser.add_argument("--flaky-ticket-issue-types", help="JIRA issue types for searching flaky tickets", default=[3, 5, 12900])
     parser.add_argument("--flaky-ticket-label", help="JIRA issue label for searching flaky tickets", default='flaky')
-    parser.add_argument("--flaky-ticket-updated-days-ago", help="Days ago jira issue was updated or its last comment for searching flaky tickets", default='90')
-    parser.add_argument("--flaky-ticket-status", help="JIRA issue status for searching flaky tickets", default='Взят в бэклог')
+    parser.add_argument("--flaky-ticket-status", help="JIRA issue status for searching flaky tickets",
+                        default='Взят в бэклог')
+    parser.add_argument("--flaky-ticket-link-type", help="JIRA issue link type for searching flaky tickets",
+                        default='has to be finished together with')
+    parser.add_argument("--flaky-ticket-issue-types", help="JIRA issue types for searching flaky tickets",
+                        default=[3, 5, 12900])
+    parser.add_argument("--flaky-ticket-updated-days-ago",
+                        help="Days ago jira issue was updated or its last comment for searching flaky tickets",
+                        default='90')
     args = parser.parse_args()
 
     config = read_config(args.config)
@@ -41,10 +49,14 @@ if __name__ == "__main__":
     planned_field = args.planned_field or config.get('deflakyzavr', 'planned_field', fallback=None)
     duty_label = args.duty_label or config.get('deflakyzavr', 'duty_label', fallback='flaky_duty')
     dry_run = args.dry_run or config.getboolean('deflakyzavr', 'dry_run', fallback=False)
-    flaky_ticket_label = args.flaky_ticket_label or config.getboolean('deflakyzavr', 'flaky_ticket_label', fallback=False)
-    flaky_ticket_status = args.flaky_ticket_status or config.getboolean('deflakyzavr', 'flaky_ticket_status', fallback=False)
-    flaky_ticket_issue_types = args.flaky_ticket_issue_types or config.getboolean('deflakyzavr', 'flaky_ticket_issue_types', fallback=False)
-    flaky_ticket_updated_days_ago = args.flaky_ticket_updated_days_ago or config.getboolean('deflakyzavr', 'flaky_ticket_updated_days_ago', fallback=False)
+    flaky_ticket_label = args.flaky_ticket_label or config.get('deflakyzavr', 'flaky_ticket_label', fallback=None)
+    flaky_ticket_status = args.flaky_ticket_status or config.get('deflakyzavr', 'flaky_ticket_status', fallback=None)
+    flaky_ticket_link_type = args.flaky_ticket_link_type or config.get(
+        'deflakyzavr', 'flaky_ticket_link_type', fallback=None)
+    flaky_ticket_issue_types = args.flaky_ticket_issue_types or config.get(
+        'deflakyzavr', 'flaky_ticket_issue_types', fallback=None)
+    flaky_ticket_updated_days_ago = args.flaky_ticket_updated_days_ago or config.get(
+        'deflakyzavr', 'flaky_ticket_updated_days_ago', fallback=None)
 
     deflakyzavration(
         server=jira_server,
@@ -60,6 +72,7 @@ if __name__ == "__main__":
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
+        flaky_ticket_link_type=flaky_ticket_link_type,
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
     )
