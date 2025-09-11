@@ -25,6 +25,11 @@ issue_type = 3
 planned_field = customfield_10012
 duty_label = flaky_duty
 dry_run = false
+flaky_ticket_label= flaky
+flaky_ticket_status = Backlog
+flaky_ticket_link_type = 'has to be finished together with'
+flaky_ticket_issue_types = [3, 5, 12900]
+flaky_ticket_updated_days_ago = 90
 ```
 
 ## Usage
@@ -47,6 +52,11 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 - --planned-field: ID of custom JIRA field for planned date
 - --duty_label: JIRA task label (default: flaky_duty)
 - --dry-run: Dry run mode
+- --flaky-ticket-label: JIRA issue label for searching flaky tickets (default: flaky)
+- --flaky-ticket-status: JIRA issue status for searching flaky tickets (default: 'Взят в бэклог')
+- --flaky-ticket-link-type: JIRA issue link type for searching flaky tickets (default: 'has to be finished together with')
+- --flaky-ticket-issue-types: JIRA issue types for searching flaky tickets (default: [3, 5, 12900])
+- --flaky-ticket-updated-days-ago: Days ago jira issue was updated or its last comment for searching flaky tickets (default: 90)
 
 ### Example
 ```

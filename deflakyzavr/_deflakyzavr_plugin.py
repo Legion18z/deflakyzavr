@@ -15,7 +15,12 @@ class Deflakyzavr:
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_label=None,
-                 dry_run=False) -> None:
+                 dry_run=False,
+                 flaky_ticket_label=None,
+                 flaky_ticket_status=None,
+                 flaky_ticket_link_type=None,
+                 flaky_ticket_issue_types=None,
+                 flaky_ticket_updated_days_ago=None) -> None:
         self._jira_server = jira_server
         self._jira_user = username
         self._jira_password = password
@@ -31,6 +36,11 @@ class Deflakyzavr:
         self._reporting_language = RU_REPORTING_LANG
         self._jira_planned_field = ticket_planned_field
         self._dry_run = dry_run
+        self._jira_flaky_ticket_label = flaky_ticket_label
+        self._jira_flaky_ticket_status = flaky_ticket_status
+        self._jira_flaky_ticket_link_type = flaky_ticket_link_type
+        self._jira_flaky_ticket_issue_types = flaky_ticket_issue_types
+        self._jira_flaky_ticket_updated_days_ago = flaky_ticket_updated_days_ago
         self._jira = LazyJiraTrier(
             self._jira_server,
             basic_auth=(self._jira_user, self._jira_password),
@@ -46,9 +56,8 @@ class Deflakyzavr:
         next_monday = today + datetime.timedelta(days=days_ahead)
         return next_monday
 
-    def _duty_ticket_is_found(self) -> bool:
-        jira_unavailable = False
-        ticket_is_found = False
+    def _get_already_created_duty_ticket(self) -> str:
+        issue_key = ''
         statuses = ",".join([f'"{status}"' for status in self._jira_search_statuses])
         search_prompt = (
             f'project = {self._jira_project} '
@@ -64,15 +73,14 @@ class Deflakyzavr:
                     jira_server=self._jira_server
                 )
             )
-            jira_unavailable = True
+            return 'jira_unavailable'
         elif found_issues:
-            issue = found_issues[0]  # type: ignore
+            issue_key = found_issues[0].key  # type: ignore
             logging.warning(
                 self._reporting_language.TICKET_ALREADY_EXISTS.format(jira_server=self._jira_server,
-                                                                      issue_key=issue.key)
+                                                                      issue_key=issue_key)
             )
-            ticket_is_found = True
-        return jira_unavailable or ticket_is_found
+        return issue_key
 
     def _format_ticket_fields(self) -> dict:
         planned_date = self._get_next_monday()
@@ -93,37 +101,84 @@ class Deflakyzavr:
             ticket_fields[self._jira_planned_field] = planned_date.isoformat()
         return ticket_fields
 
-    def create_duty_ticket(self) -> None:
-        if self._duty_ticket_is_found():
-            return
+    def create_duty_ticket(self) -> str:
+        issue_key = self._get_already_created_duty_ticket()
 
-        ticket_fields = self._format_ticket_fields()
-        result_issue = self._jira.create_issue(fields=ticket_fields)
-        if isinstance(result_issue, JiraUnavailable):
+        if issue_key == 'jira_unavailable':
+            return ''
+
+        if issue_key == '':
+            ticket_fields = self._format_ticket_fields()
+            result_issue = self._jira.create_issue(fields=ticket_fields)
+            if isinstance(result_issue, JiraUnavailable):
+                logging.warning(
+                    self._reporting_language.SKIP_CREATING_TICKET_DUE_TO_JIRA_CREATE_UNAVAILABILITY.format(
+                        jira_server=self._jira_server
+                    )
+                )
+                return ''
+
+            issue_key = result_issue.key
+
+        return issue_key
+
+    def link_old_flaky_tickets_to_duty_ticket(self, duty_issue_key: str) -> None:
+        issue_types = ", ".join([f'{issue_type}' for issue_type in self._jira_flaky_ticket_issue_types])
+        search_prompt = (
+            f"project = {self._jira_project} "
+            f"and status = '{self._jira_flaky_ticket_status}' "
+            f"and labels = {self._jira_flaky_ticket_label} "
+            f"and (updated <= '-{self._jira_flaky_ticket_updated_days_ago}d' "
+            f"or issueFunction in lastComment('before -{self._jira_flaky_ticket_updated_days_ago}d')) "
+            f"and issuetype in ({issue_types}) "
+            "ORDER BY created ASC"
+        )
+
+        found_issues = self._jira.search_issues(jql_str=search_prompt)
+        if isinstance(found_issues, JiraUnavailable):
             logging.warning(
-                self._reporting_language.SKIP_CREATING_TICKET_DUE_TO_JIRA_CREATE_UNAVAILABILITY.format(
+                self._reporting_language.SKIP_LINKING_TICKETS_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
                     jira_server=self._jira_server
                 )
             )
             return
 
+        for issue in found_issues:
+            self._jira.create_issue_link(
+                inwardIssue=issue.key,
+                outwardIssue=duty_issue_key,
+                linkType=self._jira_flaky_ticket_link_type
+            )
+
 
 def deflakyzavration(server, username, password, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
-                     duty_label=None, dry_run=False) -> None:
-
+                     duty_label=None, dry_run=False,
+                     flaky_ticket_label=None,
+                     flaky_ticket_status=None,
+                     flaky_ticket_link_type=None,
+                     flaky_ticket_issue_types=None,
+                     flaky_ticket_updated_days_ago=None) -> None:
     client = Deflakyzavr(
         jira_server=server,
         username=username,
         password=password,
         jira_project=project,
-        jira_components = jira_components,
+        jira_components=jira_components,
         epic_link_field=epic_link_field,
         jira_epic=jira_epic,
         issue_type=issue_type,
         ticket_planned_field=planned_field,
         duty_label=duty_label,
-        dry_run=dry_run
+        dry_run=dry_run,
+        flaky_ticket_label=flaky_ticket_label,
+        flaky_ticket_status=flaky_ticket_status,
+        flaky_ticket_link_type=flaky_ticket_link_type,
+        flaky_ticket_issue_types=flaky_ticket_issue_types,
+        flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
     )
-    client.create_duty_ticket()
+    issue_key = client.create_duty_ticket()
+
+    if issue_key:
+        client.link_old_flaky_tickets_to_duty_ticket(issue_key)
