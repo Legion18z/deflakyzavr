@@ -20,7 +20,8 @@ class Deflakyzavr:
                  flaky_ticket_status=None,
                  flaky_ticket_link_type=None,
                  flaky_ticket_issue_types=None,
-                 flaky_ticket_updated_days_ago=None) -> None:
+                 flaky_ticket_updated_days_ago=None,
+                 flaky_ticket_allowed_comments_count=None) -> None:
         self._jira_server = jira_server
         self._jira_user = username
         self._jira_password = password
@@ -41,6 +42,7 @@ class Deflakyzavr:
         self._jira_flaky_ticket_link_type = flaky_ticket_link_type
         self._jira_flaky_ticket_issue_types = flaky_ticket_issue_types
         self._jira_flaky_ticket_updated_days_ago = flaky_ticket_updated_days_ago
+        self._jira_flaky_ticket_allowed_comments_count = flaky_ticket_allowed_comments_count
         self._jira = LazyJiraTrier(
             self._jira_server,
             basic_auth=(self._jira_user, self._jira_password),
@@ -150,6 +152,42 @@ class Deflakyzavr:
                 linkType=self._jira_flaky_ticket_link_type
             )
 
+    def delete_comments_in_flaky_tickets_with_not_allowed_comments_count(self) -> None:
+        issue_types = ", ".join([f'{issue_type}' for issue_type in self._jira_flaky_ticket_issue_types])
+        search_prompt = (
+            f"project = {self._jira_project} "
+            f"and issuetype in ({issue_types}) "
+            f"and status = '{self._jira_flaky_ticket_status}' "
+            f"and labels = {self._jira_flaky_ticket_label} "
+            f"and issueFunction in hasComments('+{self._jira_flaky_ticket_allowed_comments_count}')"
+        )
+
+        found_issues = self._jira.search_issues(jql_str=search_prompt)
+        if isinstance(found_issues, JiraUnavailable):
+            logging.warning(
+                self._reporting_language.SKIP_SEARCHING_TICKETS_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
+                    jira_server=self._jira_server
+                )
+            )
+            return
+
+        for issue in found_issues:
+            comments = self._jira.comments(issue)
+            for comment in comments:
+                try:
+                    self._jira.delete_comment(issue, comment.id)
+                    logging.warning(self._reporting_language.COMMENT_DELETED.format(
+                        comment_id=comment.id, ticket_key=issue.key
+                    ))
+                except Exception as e:
+                    logging.warning(self._reporting_language.COMMENT_DELETED_ERROR.format(
+                        comment_id=comment.id, ticket_key=issue.key, error=e
+                    ))
+
+                logging.warning(self._reporting_language.TICKET_AFTER_DELETED_COMMENTS.format(
+                    ticket_key=issue.key
+                ))
+
 
 def deflakyzavration(server, username, password, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
@@ -159,7 +197,8 @@ def deflakyzavration(server, username, password, project,
                      flaky_ticket_status=None,
                      flaky_ticket_link_type=None,
                      flaky_ticket_issue_types=None,
-                     flaky_ticket_updated_days_ago=None) -> None:
+                     flaky_ticket_updated_days_ago=None,
+                     flaky_ticket_allowed_comments_count=None) -> None:
     client = Deflakyzavr(
         jira_server=server,
         username=username,
@@ -177,6 +216,7 @@ def deflakyzavration(server, username, password, project,
         flaky_ticket_link_type=flaky_ticket_link_type,
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
+        flaky_ticket_allowed_comments_count=flaky_ticket_allowed_comments_count
     )
     issue_key = client.create_duty_ticket()
 

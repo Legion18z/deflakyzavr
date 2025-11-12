@@ -34,6 +34,9 @@ if __name__ == "__main__":
     parser.add_argument("--flaky-ticket-updated-days-ago",
                         help="Days ago jira issue was updated or its last comment for searching flaky tickets",
                         default='90')
+    parser.add_argument("--flaky-ticket-allowed-comments-count",
+                        help="Allowed count of comments in ticket, above which comments will be deleted",
+                        default='100')
     args = parser.parse_args()
 
     config = read_config(args.config)
