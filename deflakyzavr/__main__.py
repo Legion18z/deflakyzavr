@@ -36,6 +36,10 @@ if __name__ == "__main__":
     parser.add_argument("--flaky-ticket-allowed-comments-count",
                         help="Allowed count of comments in ticket, above which comments will be deleted",
                         default=100)
+    parser.add_argument("--flaky-ticket-deleted-comments-statuses",
+                        help="Statuses for searching tickets for deleting comments more than allowed count."
+                             "Should be equal field jira_search_statuses in Flakyzavr",
+                        default=['Взят в бэклог', 'Open', 'Reopened', 'In Progress', 'Code Review', 'Resolved'])
     args = parser.parse_args()
 
     config = read_config(args.config)
@@ -60,6 +64,8 @@ if __name__ == "__main__":
         'deflakyzavr', 'flaky_ticket_updated_days_ago', fallback=None)
     flaky_ticket_allowed_comments_count = args.flaky_ticket_allowed_comments_count or config.get(
         'deflakyzavr', 'flaky_ticket_allowed_comments_count', fallback=None)
+    flaky_ticket_deleted_comments_statuses = args.flaky_ticket_deleted_comments_statuses or config.get(
+        'deflakyzavr', 'flaky_ticket_deleted_comments_statuses', fallback=None)
 
     deflakyzavration(
         server=jira_server,
@@ -78,4 +84,5 @@ if __name__ == "__main__":
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
         flaky_ticket_allowed_comments_count=flaky_ticket_allowed_comments_count,
+        flaky_ticket_deleted_comments_statuses=flaky_ticket_deleted_comments_statuses,
     )
