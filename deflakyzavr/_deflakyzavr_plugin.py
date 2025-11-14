@@ -157,7 +157,6 @@ class Deflakyzavr:
     def delete_comments_in_flaky_tickets_with_not_allowed_comments_count(self) -> None:
         issue_types = ", ".join([f'{issue_type}' for issue_type in self._jira_flaky_ticket_issue_types])
         issue_statuses = ", ".join([f'"{status}"' for status in self._jira_flaky_ticket_deleted_comments_statuses])
-        print(issue_statuses)
         search_prompt = (
             f"project = {self._jira_project} "
             f"and issuetype in ({issue_types}) "
