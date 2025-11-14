@@ -59,13 +59,13 @@ class LazyJiraTrier:
                 swallow=(JIRAError, jsonJSONDecodeError, requestsJSONDecodeError)
             )(self._jira.search_issues)(jql_str=jql_str)
         except JIRAError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
 
     def create_issue(self, fields: dict[str, Any]) -> Issue | MockIssue | JiraUnavailable:
@@ -80,13 +80,13 @@ class LazyJiraTrier:
         try:
             issue = self._jira.create_issue(fields=fields)
         except JIRAError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         return issue
 
@@ -107,13 +107,13 @@ class LazyJiraTrier:
                 outwardIssue=outwardIssue
             )
         except JIRAError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         return
 
@@ -125,13 +125,13 @@ class LazyJiraTrier:
         try:
             comments = self._jira.comments(issue_key)
         except JIRAError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
-            loggingwarning(e)
+            logging.warning(e)
             return JiraUnavailable()
 
         return comments
