@@ -7,6 +7,7 @@ from jira import JIRA
 from jira import JIRAError
 from requests import JSONDecodeError as requestsJSONDecodeError
 from rtry import retry
+import logging
 
 MockIssue = namedtuple('MockIssue', ['key'])
 
@@ -20,16 +21,16 @@ class JiraUnavailable:
 
 
 class LazyJiraTrier:
-    def __init__(self, server, basic_auth, dry_run=False) -> None:
+    def __init__(self, server, token, dry_run=False) -> None:
         self._server = server
-        self._basic_auth = basic_auth
+        self._token = token
         self._jira = None
         self._dry_run = dry_run
 
     def connect(self) -> JIRA | JiraUnavailable:
         if not self._jira:
             try:
-                self._jira = JIRA(self._server, basic_auth=self._basic_auth)
+                self._jira = JIRA(server=self._server, token_auth=self._token)
             except JIRAError as e:
                 if e.status_code == 403:
                     raise JiraAuthorizationError from None
@@ -58,10 +59,13 @@ class LazyJiraTrier:
                 swallow=(JIRAError, jsonJSONDecodeError, requestsJSONDecodeError)
             )(self._jira.search_issues)(jql_str=jql_str)
         except JIRAError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
 
     def create_issue(self, fields: dict[str, Any]) -> Issue | MockIssue | JiraUnavailable:
@@ -76,10 +80,13 @@ class LazyJiraTrier:
         try:
             issue = self._jira.create_issue(fields=fields)
         except JIRAError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         return issue
 
@@ -100,9 +107,31 @@ class LazyJiraTrier:
                 outwardIssue=outwardIssue
             )
         except JIRAError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except jsonJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         except requestsJSONDecodeError as e:
+            loggingwarning(e)
             return JiraUnavailable()
         return
+
+    def get_issue_comments(self, issue_key: str) -> list | JiraUnavailable:
+        res = retry(delay=1, attempts=3, until=lambda x: isinstance(x, JiraUnavailable), logger=print)(self.connect)()
+        if isinstance(res, JiraUnavailable):
+            return res
+
+        try:
+            comments = self._jira.comments(issue_key)
+        except JIRAError as e:
+            loggingwarning(e)
+            return JiraUnavailable()
+        except jsonJSONDecodeError as e:
+            loggingwarning(e)
+            return JiraUnavailable()
+        except requestsJSONDecodeError as e:
+            loggingwarning(e)
+            return JiraUnavailable()
+
+        return comments

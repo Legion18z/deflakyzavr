@@ -11,7 +11,7 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s")
 
 
 class Deflakyzavr:
-    def __init__(self, jira_server, username, password, jira_project,
+    def __init__(self, jira_server, jira_token, jira_project,
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_label=None,
@@ -23,8 +23,7 @@ class Deflakyzavr:
                  flaky_ticket_updated_days_ago=None,
                  flaky_ticket_allowed_comments_count=None) -> None:
         self._jira_server = jira_server
-        self._jira_user = username
-        self._jira_password = password
+        self._jira_token = jira_token
         self._jira_project = jira_project
         self._jira_issue_type = issue_type
         self._jira_components = jira_components
@@ -45,7 +44,7 @@ class Deflakyzavr:
         self._jira_flaky_ticket_allowed_comments_count = flaky_ticket_allowed_comments_count
         self._jira = LazyJiraTrier(
             self._jira_server,
-            basic_auth=(self._jira_user, self._jira_password),
+            token=self._jira_token,
             dry_run=self._dry_run
         )
 
@@ -172,10 +171,15 @@ class Deflakyzavr:
             return
 
         for issue in found_issues:
-            comments = self._jira.comments(issue)
+            comments = issue.fields.comment.comments
+            not_allowed_comments_number = len(comments) - self._jira_flaky_ticket_allowed_comments_count
+
+            if not_allowed_comments_number <= 0:
+                return
+
             for comment in comments:
                 try:
-                    self._jira.delete_comment(issue, comment.id)
+                    comment.delete()
                     logging.warning(self._reporting_language.COMMENT_DELETED.format(
                         comment_id=comment.id, ticket_key=issue.key
                     ))
@@ -184,12 +188,12 @@ class Deflakyzavr:
                         comment_id=comment.id, ticket_key=issue.key, error=e
                     ))
 
-                logging.warning(self._reporting_language.TICKET_AFTER_DELETED_COMMENTS.format(
-                    ticket_key=issue.key
-                ))
+            logging.warning(self._reporting_language.TICKET_AFTER_DELETED_COMMENTS.format(
+                ticket_key=issue.key
+            ))
 
 
-def deflakyzavration(server, username, password, project,
+def deflakyzavration(server, token, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
                      duty_label=None, dry_run=False,
@@ -201,8 +205,7 @@ def deflakyzavration(server, username, password, project,
                      flaky_ticket_allowed_comments_count=None) -> None:
     client = Deflakyzavr(
         jira_server=server,
-        username=username,
-        password=password,
+        jira_token=token,
         jira_project=project,
         jira_components=jira_components,
         epic_link_field=epic_link_field,
@@ -222,3 +225,5 @@ def deflakyzavration(server, username, password, project,
 
     if issue_key:
         client.link_old_flaky_tickets_to_duty_ticket(issue_key)
+
+    client.delete_comments_in_flaky_tickets_with_not_allowed_comments_count()

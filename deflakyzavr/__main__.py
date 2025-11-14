@@ -14,8 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create a duty ticket in JIRA")
     parser.add_argument("--config", "-c", help="Path to config file", default="setup.cfg")
     parser.add_argument("--jira-server", "-s", help="JIRA server address", default=None)
-    parser.add_argument("--jira-user", "-u", help="JIRA user", default=None)
-    parser.add_argument("--jira-password", "-p", help="JIRA password", default=None)
+    parser.add_argument("--jira-token", "-t", help="JIRA token", default=None)
     parser.add_argument("--jira-project", help="JIRA project key", default=None)
     parser.add_argument("--jira-components", help="JIRA task components", default=None)
     parser.add_argument("--epic-link-field", help="ID of custom JIRA field for epic link", default=None)
@@ -36,14 +35,13 @@ if __name__ == "__main__":
                         default='90')
     parser.add_argument("--flaky-ticket-allowed-comments-count",
                         help="Allowed count of comments in ticket, above which comments will be deleted",
-                        default='100')
+                        default=100)
     args = parser.parse_args()
 
     config = read_config(args.config)
 
     jira_server = args.jira_server or config.get('deflakyzavr', 'jira_server', fallback=None)
-    jira_user = args.jira_user or config.get('deflakyzavr', 'jira_user', fallback=None)
-    jira_password = args.jira_password or config.get('deflakyzavr', 'jira_password', fallback=None)
+    jira_token = args.jira_token or config.get('deflakyzavr', 'jira_token', fallback=None)
     jira_project = args.jira_project or config.get('deflakyzavr', 'jira_project', fallback=None)
     jira_components = args.jira_components or config.get('deflakyzavr', 'jira_components', fallback='')
     epic_link_field = args.epic_link_field or config.get('deflakyzavr', 'epic_link_field', fallback=None)
@@ -60,11 +58,12 @@ if __name__ == "__main__":
         'deflakyzavr', 'flaky_ticket_issue_types', fallback=None)
     flaky_ticket_updated_days_ago = args.flaky_ticket_updated_days_ago or config.get(
         'deflakyzavr', 'flaky_ticket_updated_days_ago', fallback=None)
+    flaky_ticket_allowed_comments_count = args.flaky_ticket_allowed_comments_count or config.get(
+        'deflakyzavr', 'flaky_ticket_allowed_comments_count', fallback=None)
 
     deflakyzavration(
         server=jira_server,
-        username=jira_user,
-        password=jira_password,
+        token=jira_token,
         project=jira_project,
         epic_link_field=epic_link_field,
         jira_components=jira_components.split(','),
@@ -78,4 +77,5 @@ if __name__ == "__main__":
         flaky_ticket_link_type=flaky_ticket_link_type,
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
+        flaky_ticket_allowed_comments_count=flaky_ticket_allowed_comments_count,
     )
