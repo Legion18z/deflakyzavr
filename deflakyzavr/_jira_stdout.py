@@ -26,20 +26,25 @@ class LazyJiraTrier:
         self._token = token
         self._jira = None
         self._dry_run = dry_run
+        self.jira_user_name = None
 
     def connect(self) -> JIRA | JiraUnavailable:
         if not self._jira:
             try:
                 self._jira = JIRA(server=self._server, token_auth=self._token)
+                self.jira_user_name = self._jira.myself()['name']
             except JIRAError as e:
+                logging.warning(e)
                 if e.status_code == 403:
                     raise JiraAuthorizationError from None
                 self._jira = None
                 return JiraUnavailable()
             except jsonJSONDecodeError as e:
+                logging.warning(e)
                 self._jira = None
                 return JiraUnavailable()
             except requestsJSONDecodeError as e:
+                logging.warning(e)
                 self._jira = None
                 return JiraUnavailable()
 
