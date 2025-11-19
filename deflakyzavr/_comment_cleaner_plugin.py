@@ -66,6 +66,7 @@ class CommentCleaner:
             if comment.author.displayName in self._jira.jira_user_names
         ]
         comments_to_delete = author_comments[:not_allowed_comments_number + self._flaky_ticket_limit_comments_count]
+
         for comment in comments_to_delete:
             try:
                 if not self._dry_run:
