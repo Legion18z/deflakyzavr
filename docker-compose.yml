@@ -4,6 +4,5 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     command: 'sh -c "trap : TERM INT; sleep 86400 & wait"'
-#    command: python3 -m deflakyzavr --config ugc_config.cfg
     volumes:
       - .:/deflakyzavr

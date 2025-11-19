@@ -47,25 +47,38 @@ class CommentCleaner:
         else:
             return
 
-        issue.update(fields={custom_field_id: new_value})
+        if not self._dry_run:
+            issue.update(fields={custom_field_id: new_value})
+
         logging.warning(self._reporting_language.TICKET_WEIGHT_UPDATED.format(
             custom_field_id=issue.key, current_value=current_value, new_value=new_value,
         ))
 
-    def _delete_comments(self, comments: list) -> None:
-        for comment in comments:
-            if comment.author.displayName != self._jira.jira_user_name:
-                continue
+    def _delete_comments(self, issue: Issue) -> int:
+        comments = issue.fields.comment.comments
+        not_allowed_comments_number = len(comments) - self._flaky_ticket_allowed_comments_count
+
+        if not_allowed_comments_number <= 0:
+            return 0
+
+        author_comments = [
+            comment for comment in comments
+            if comment.author.displayName in self._jira.jira_user_names
+        ]
+        comments_to_delete = author_comments[:not_allowed_comments_number + self._flaky_ticket_limit_comments_count]
+        for comment in comments_to_delete:
             try:
                 if not self._dry_run:
                     comment.delete()
                 logging.warning(self._reporting_language.COMMENT_DELETED.format(
-                    comment_id=comment.id, ticket_key=issue.key
+                    comment_id=f'{comment.id}', ticket_key=issue.key
                 ))
             except Exception as e:
                 logging.warning(self._reporting_language.COMMENT_DELETED_ERROR.format(
                     comment_id=comment.id, ticket_key=issue.key, error=e
                 ))
+
+        return len(comments_to_delete)
 
     def delete_comments_in_flaky_tickets_with_not_allowed_comments_count(self) -> None:
         issue_types = ", ".join([f'{issue_type}' for issue_type in self._flaky_ticket_issue_types])
@@ -88,19 +101,20 @@ class CommentCleaner:
             return
 
         for issue in found_issues:
-            comments = issue.fields.comment.comments
-            not_allowed_comments_number = len(comments) - self._flaky_ticket_allowed_comments_count
-
-            if not_allowed_comments_number <= 0:
-                return
-
-            self._delete_comments(comments[:not_allowed_comments_number + self._flaky_ticket_limit_comments_count])
+            deleted_comments_count = self._delete_comments(issue)
             logging.warning(self._reporting_language.TICKET_AFTER_DELETED_COMMENTS.format(
                 ticket_key=issue.key
             ))
 
-            if not self._dry_run:
-                self.increase_ticket_weight(issue)
+            self._increase_ticket_weight(issue)
+            comment_to_add = self._reporting_language.TICKET_COMMENT_AFTER_DELETED_COMMENTS.format(
+                deleted_comments_count=deleted_comments_count,
+                weight=self._flaky_ticket_weight_after_deleted_comments
+            )
+            if self._dry_run:
+                logging.warning(comment_to_add)
+            else:
+                self._jira.add_comment(issue, comment_to_add)
 
 
 def comment_cleaner(jira_client, project, dry_run,
@@ -116,8 +130,8 @@ def comment_cleaner(jira_client, project, dry_run,
         jira_client=jira_client,
         jira_project=project,
         dry_run=dry_run,
-        flaky_ticket_label = flaky_ticket_label,
-        flaky_ticket_issue_types = flaky_ticket_issue_types,
+        flaky_ticket_label=flaky_ticket_label,
+        flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_allowed_comments_count=flaky_ticket_allowed_comments_count,
         flaky_ticket_limit_comments_count=flaky_ticket_limit_comments_count,
         flaky_ticket_deleted_comments_statuses=flaky_ticket_deleted_comments_statuses,

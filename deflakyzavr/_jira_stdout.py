@@ -26,13 +26,13 @@ class LazyJiraTrier:
         self._token = token
         self._jira = None
         self._dry_run = dry_run
-        self.jira_user_name = None
+        self.jira_user_names = None
 
     def connect(self) -> JIRA | JiraUnavailable:
         if not self._jira:
             try:
                 self._jira = JIRA(server=self._server, token_auth=self._token)
-                self.jira_user_name = self._jira.myself()['name']
+                self.jira_user_names = [self._jira.myself()['displayName'], self._jira.myself()['name']]
             except JIRAError as e:
                 logging.warning(e)
                 if e.status_code == 403:
@@ -122,13 +122,13 @@ class LazyJiraTrier:
             return JiraUnavailable()
         return
 
-    def get_issue_comments(self, issue_key: str) -> list | JiraUnavailable:
+    def add_comment(self, issue: Issue, text: str) -> list | JiraUnavailable:
         res = retry(delay=1, attempts=3, until=lambda x: isinstance(x, JiraUnavailable), logger=print)(self.connect)()
         if isinstance(res, JiraUnavailable):
             return res
 
         try:
-            comments = self._jira.comments(issue_key)
+            comments = self._jira.add_comment(issue, text)
         except JIRAError as e:
             logging.warning(e)
             return JiraUnavailable()

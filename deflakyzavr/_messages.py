@@ -14,6 +14,7 @@ class ReportingLangSet(NamedTuple):
     COMMENT_DELETED_ERROR: str
     TICKET_AFTER_DELETED_COMMENTS: str
     TICKET_WEIGHT_UPDATED: str
+    TICKET_COMMENT_AFTER_DELETED_COMMENTS: str
 
 
 RU_REPORTING_LANG = ReportingLangSet(
@@ -41,6 +42,8 @@ RU_REPORTING_LANG = ReportingLangSet(
     COMMENT_DELETED_ERROR='Комментарий {comment_id} не был удалён из тикета {ticket_key} из-за ошибки {error}',
     TICKET_AFTER_DELETED_COMMENTS='Тикет {ticket_key} был обработан из-за превышающего кол-ва комментариев',
     TICKET_WEIGHT_UPDATED='Вес задачи обновлён: {current_value} → {new_value}',
+    TICKET_COMMENT_AFTER_DELETED_COMMENTS='Было удалено {deleted_comments_count} комментариев. '
+                                          'Вес задачи увеличен на {weight}.',
 )
 
 EN_REPORTING_LANG = ReportingLangSet(
@@ -68,4 +71,6 @@ EN_REPORTING_LANG = ReportingLangSet(
     COMMENT_DELETED_ERROR='Comment {comment_id} was not removed from ticket {ticket_key} due to error {error}',
     TICKET_AFTER_DELETED_COMMENTS='Ticket {ticket_key} was processed due to excessive number of comments',
     TICKET_WEIGHT_UPDATED='The task weight has been updated: {current_value} → {new_value}',
+    TICKET_COMMENT_AFTER_DELETED_COMMENTS='{deleted_comments_count} comments were deleted. '
+                                          'Task weight increased by {weight}.',
 )
