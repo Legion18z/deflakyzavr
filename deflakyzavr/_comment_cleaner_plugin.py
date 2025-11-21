@@ -96,7 +96,7 @@ class CommentCleaner:
         if isinstance(found_issues, JiraUnavailable):
             logging.warning(
                 self._reporting_language.SKIP_SEARCHING_TICKETS_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
-                    jira_server=self._jira_server
+                    jira_server=self._jira.server
                 )
             )
             return

@@ -22,7 +22,7 @@ class JiraUnavailable:
 
 class LazyJiraTrier:
     def __init__(self, server, token, dry_run=False) -> None:
-        self._server = server
+        self.server = server
         self._token = token
         self._jira = None
         self._dry_run = dry_run
@@ -31,7 +31,7 @@ class LazyJiraTrier:
     def connect(self) -> JIRA | JiraUnavailable:
         if not self._jira:
             try:
-                self._jira = JIRA(server=self._server, token_auth=self._token)
+                self._jira = JIRA(server=self.server, token_auth=self._token)
                 self.jira_user_names = [self._jira.myself()['displayName'], self._jira.myself()['name']]
             except JIRAError as e:
                 logging.warning(e)

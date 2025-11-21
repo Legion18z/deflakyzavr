@@ -63,14 +63,14 @@ class Deflakyzavr:
         if isinstance(found_issues, JiraUnavailable):
             logging.warning(
                 self._reporting_language.SKIP_CREATING_TICKET_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
-                    jira_server=self._jira_server
+                    jira_server=self._jira.server
                 )
             )
             return 'jira_unavailable'
         elif found_issues:
             issue_key = found_issues[0].key  # type: ignore
             logging.warning(
-                self._reporting_language.TICKET_ALREADY_EXISTS.format(jira_server=self._jira_server,
+                self._reporting_language.TICKET_ALREADY_EXISTS.format(jira_server=self._jira.server,
                                                                       issue_key=issue_key)
             )
         return issue_key
@@ -106,7 +106,7 @@ class Deflakyzavr:
             if isinstance(result_issue, JiraUnavailable):
                 logging.warning(
                     self._reporting_language.SKIP_CREATING_TICKET_DUE_TO_JIRA_CREATE_UNAVAILABILITY.format(
-                        jira_server=self._jira_server
+                        jira_server=self._jira.server
                     )
                 )
                 return ''
@@ -131,7 +131,7 @@ class Deflakyzavr:
         if isinstance(found_issues, JiraUnavailable):
             logging.warning(
                 self._reporting_language.SKIP_LINKING_TICKETS_DUE_TO_JIRA_SEARCH_UNAVAILABILITY.format(
-                    jira_server=self._jira_server
+                    jira_server=self._jira.server
                 )
             )
             return
