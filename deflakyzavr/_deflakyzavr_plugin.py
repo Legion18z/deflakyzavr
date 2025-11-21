@@ -11,7 +11,7 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s")
 
 
 class Deflakyzavr:
-    def __init__(self, jira_server, username, password, jira_project,
+    def __init__(self, jira_client, jira_project,
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_label=None,
@@ -20,14 +20,12 @@ class Deflakyzavr:
                  flaky_ticket_status=None,
                  flaky_ticket_link_type=None,
                  flaky_ticket_issue_types=None,
-                 flaky_ticket_updated_days_ago=None) -> None:
-        self._jira_server = jira_server
-        self._jira_user = username
-        self._jira_password = password
+                 flaky_ticket_updated_days_ago=None,
+                 ) -> None:
+        self._jira: JIRA | LazyJiraTrier | None = jira_client
         self._jira_project = jira_project
         self._jira_issue_type = issue_type
         self._jira_components = jira_components
-        self._jira: JIRA | LazyJiraTrier | None = None
         self._jira_search_statuses = ['Взят в бэклог', 'Open']
         self._jira_search_forbidden_symbols = ['[', ']', '"']
         self._jira_duty_label = duty_label
@@ -41,11 +39,6 @@ class Deflakyzavr:
         self._jira_flaky_ticket_link_type = flaky_ticket_link_type
         self._jira_flaky_ticket_issue_types = flaky_ticket_issue_types
         self._jira_flaky_ticket_updated_days_ago = flaky_ticket_updated_days_ago
-        self._jira = LazyJiraTrier(
-            self._jira_server,
-            basic_auth=(self._jira_user, self._jira_password),
-            dry_run=self._dry_run
-        )
 
     @staticmethod
     def _get_next_monday() -> datetime.date:
@@ -151,7 +144,7 @@ class Deflakyzavr:
             )
 
 
-def deflakyzavration(server, username, password, project,
+def deflakyzavration(jira_client, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
                      duty_label=None, dry_run=False,
@@ -159,11 +152,10 @@ def deflakyzavration(server, username, password, project,
                      flaky_ticket_status=None,
                      flaky_ticket_link_type=None,
                      flaky_ticket_issue_types=None,
-                     flaky_ticket_updated_days_ago=None) -> None:
+                     flaky_ticket_updated_days_ago=None,
+                     ) -> None:
     client = Deflakyzavr(
-        jira_server=server,
-        username=username,
-        password=password,
+        jira_client=jira_client,
         jira_project=project,
         jira_components=jira_components,
         epic_link_field=epic_link_field,

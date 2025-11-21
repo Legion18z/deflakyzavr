@@ -30,6 +30,11 @@ flaky_ticket_status = Backlog
 flaky_ticket_link_type = 'has to be finished together with'
 flaky_ticket_issue_types = [3, 5, 12900]
 flaky_ticket_updated_days_ago = 90
+flaky_ticket_allowed_comments_count = 100
+flaky_ticket_limit_comments_count = 30
+flaky_ticket_deleted_comments_statuses = ['Взят в бэклог', 'Open', 'Reopened', 'In Progress', 'Code Review', 'Resolved']
+flaky_ticket_weight_field_name = 'customfield_38040'
+flaky_ticket_weight_after_deleted_comments = 101
 ```
 
 ## Usage
@@ -57,6 +62,11 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 - --flaky-ticket-link-type: JIRA issue link type for searching flaky tickets (default: 'has to be finished together with')
 - --flaky-ticket-issue-types: JIRA issue types for searching flaky tickets (default: [3, 5, 12900])
 - --flaky-ticket-updated-days-ago: Days ago jira issue was updated or its last comment for searching flaky tickets (default: 90)
+- --flaky_ticket_allowed_comments_count: Allowed count of comments in ticket, above which comments will be deleted
+- --flaky_ticket_limit_comments_count: Additional limit for deleting comments
+- --flaky_ticket_deleted_comments_statuses: Statuses for searching tickets for deleting comments more than allowed count. Should be equal field jira_search_statuses in Flakyzavr
+- --flaky_ticket_weight_field_name: Field name to increase weight after deleting comments
+- --flaky_ticket_weight_after_deleted_comments: Weight that will increase after deleting comments
 
 ### Example
 ```

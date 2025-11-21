@@ -2,6 +2,8 @@ import argparse
 import configparser
 
 from deflakyzavr._deflakyzavr_plugin import deflakyzavration
+from deflakyzavr._comment_cleaner_plugin import comment_cleaner
+from deflakyzavr._jira_stdout import LazyJiraTrier
 
 
 def read_config(config_file):
@@ -14,8 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create a duty ticket in JIRA")
     parser.add_argument("--config", "-c", help="Path to config file", default="setup.cfg")
     parser.add_argument("--jira-server", "-s", help="JIRA server address", default=None)
-    parser.add_argument("--jira-user", "-u", help="JIRA user", default=None)
-    parser.add_argument("--jira-password", "-p", help="JIRA password", default=None)
+    parser.add_argument("--jira-token", "-t", help="JIRA token", default=None)
     parser.add_argument("--jira-project", help="JIRA project key", default=None)
     parser.add_argument("--jira-components", help="JIRA task components", default=None)
     parser.add_argument("--epic-link-field", help="ID of custom JIRA field for epic link", default=None)
@@ -34,13 +35,32 @@ if __name__ == "__main__":
     parser.add_argument("--flaky-ticket-updated-days-ago",
                         help="Days ago jira issue was updated or its last comment for searching flaky tickets",
                         default='90')
+
+    # ----------------------- Comment Cleaner ------------------------
+
+    parser.add_argument("--flaky-ticket-allowed-comments-count",
+                        help="Allowed count of comments in ticket, above which comments will be deleted",
+                        default=100)
+    parser.add_argument("--flaky-ticket-limit-comments-count",
+                        help="Additional limit for deleting comments",
+                        default=30)
+    parser.add_argument("--flaky-ticket-deleted-comments-statuses",
+                        help="Statuses for searching tickets for deleting comments more than allowed count."
+                             "Should be equal field jira_search_statuses in Flakyzavr",
+                        default=['Взят в бэклог', 'Open', 'Reopened', 'In Progress', 'Code Review', 'Resolved'])
+    parser.add_argument("--flaky-ticket-weight-field-name",
+                        help="Field name to increase weight after deleting comments",
+                        default="customfield_38040")
+    parser.add_argument("--flaky-ticket-weight-after-deleted-comments",
+                        help="Weight that will increase after deleting comments",
+                        default=101)
+
     args = parser.parse_args()
 
     config = read_config(args.config)
 
     jira_server = args.jira_server or config.get('deflakyzavr', 'jira_server', fallback=None)
-    jira_user = args.jira_user or config.get('deflakyzavr', 'jira_user', fallback=None)
-    jira_password = args.jira_password or config.get('deflakyzavr', 'jira_password', fallback=None)
+    jira_token = args.jira_token or config.get('deflakyzavr', 'jira_token', fallback=None)
     jira_project = args.jira_project or config.get('deflakyzavr', 'jira_project', fallback=None)
     jira_components = args.jira_components or config.get('deflakyzavr', 'jira_components', fallback='')
     epic_link_field = args.epic_link_field or config.get('deflakyzavr', 'epic_link_field', fallback=None)
@@ -58,10 +78,23 @@ if __name__ == "__main__":
     flaky_ticket_updated_days_ago = args.flaky_ticket_updated_days_ago or config.get(
         'deflakyzavr', 'flaky_ticket_updated_days_ago', fallback=None)
 
+    # ----------------------- Comment Cleaner ------------------------
+
+    flaky_ticket_allowed_comments_count = args.flaky_ticket_allowed_comments_count or config.get(
+        'deflakyzavr', 'flaky_ticket_allowed_comments_count', fallback=None)
+    flaky_ticket_limit_comments_count = args.flaky_ticket_limit_comments_count or config.get(
+        'deflakyzavr', 'flaky_ticket_limit_comments_count', fallback=None)
+    flaky_ticket_deleted_comments_statuses = args.flaky_ticket_deleted_comments_statuses or config.get(
+        'deflakyzavr', 'flaky_ticket_deleted_comments_statuses', fallback=None)
+    flaky_ticket_weight_field_name = args.flaky_ticket_weight_field_name or config.get(
+        'deflakyzavr', 'flaky_ticket_weight_field_name', fallback=None)
+    flaky_ticket_weight_after_deleted_comments = args.flaky_ticket_weight_after_deleted_comments or config.get(
+        'deflakyzavr', 'flaky_ticket_weight_after_deleted_comments', fallback=None)
+
+    jira_client = LazyJiraTrier(server=jira_server, token=jira_token, dry_run=dry_run)
+
     deflakyzavration(
-        server=jira_server,
-        username=jira_user,
-        password=jira_password,
+        jira_client=jira_client,
         project=jira_project,
         epic_link_field=epic_link_field,
         jira_components=jira_components.split(','),
@@ -75,4 +108,17 @@ if __name__ == "__main__":
         flaky_ticket_link_type=flaky_ticket_link_type,
         flaky_ticket_issue_types=flaky_ticket_issue_types,
         flaky_ticket_updated_days_ago=flaky_ticket_updated_days_ago,
+    )
+
+    comment_cleaner(
+        jira_client=jira_client,
+        project=jira_project,
+        dry_run=dry_run,
+        flaky_ticket_label=flaky_ticket_label,
+        flaky_ticket_issue_types=flaky_ticket_issue_types,
+        flaky_ticket_allowed_comments_count=flaky_ticket_allowed_comments_count,
+        flaky_ticket_limit_comments_count=flaky_ticket_limit_comments_count,
+        flaky_ticket_deleted_comments_statuses=flaky_ticket_deleted_comments_statuses,
+        flaky_ticket_weight_field_name=flaky_ticket_weight_field_name,
+        flaky_ticket_weight_after_deleted_comments=flaky_ticket_weight_after_deleted_comments,
     )
