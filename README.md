@@ -15,8 +15,7 @@ You can configure the plugin using a configuration file (setup.cfg). Below is an
 ```
 [deflakyzavr]
 jira_server = https://your-jira-server.com
-jira_user = your_username
-jira_password = your_password
+jira_token = jira_token
 jira_project = your_project_key
 jira_components = component1,component2
 epic_link_field = customfield_10011
@@ -47,8 +46,7 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 
 - --config, -c: Path to the config file (default: setup.cfg)
 - --jira-server, -s: JIRA server address
-- --jira-user, -u: JIRA user
-- --jira-password, -p: JIRA password
+- --jira-token, -u: JIRA token
 - --jira-project: JIRA project key
 - --jira-components: JIRA task components (comma-separated)
 - --epic-link-field: ID of custom JIRA field for epic link
@@ -70,32 +68,8 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 
 ### Example
 
-File setup.cgf:
 ```
-[deflakyzavr]
-jira_token = <token>
-jira_server = <jira_server>
-jira_project = PROJECT
-jira_components = all
-epic_link_field = customfield_12143
-jira_epic = EPIC-123456
-issue_type = 12900
-planned_field = customfield_10340
-duty_label = flaky_duty
-flaky_ticket_label= flaky
-flaky_ticket_status = 'Взят в бэклог'
-flaky_ticket_link_type = 'has to be finished together with'
-flaky_ticket_issue_types = [3, 5, 12900]
-flaky_ticket_updated_days_ago = 90
-flaky_ticket_allowed_comments_count = 100
-flaky_ticket_limit_comments_count = 30
-flaky_ticket_deleted_comments_statuses = ['Взят в бэклог', 'Open', 'Reopened', 'In Progress', 'Code Review', 'Resolved']
-flaky_ticket_weight_field_name = 'customfield_38040'
-flaky_ticket_weight_after_deleted_comments = 101
-```
-Run:
-```
-python -m deflakyzavr -c setup.cfg
+python -m deflakyzavr --jira-server <jira_server> --jira-token <jira_token> -c setup.cfg
 ```
 
 
