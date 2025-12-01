@@ -98,7 +98,7 @@ if __name__ == "__main__":
         jira_client=jira_client,
         project=jira_project,
         epic_link_field=epic_link_field,
-        jira_components=jira_components,
+        jira_components=jira_components.split(','),
         jira_epic=jira_epic,
         issue_type=issue_type,
         planned_field=planned_field,
