@@ -46,7 +46,7 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 
 - --config, -c: Path to the config file (default: setup.cfg)
 - --jira-server, -s: JIRA server address
-- --jira-token, -u: JIRA token
+- --jira-token, -t: JIRA token
 - --jira-project: JIRA project key
 - --jira-components: JIRA task components (comma-separated)
 - --epic-link-field: ID of custom JIRA field for epic link
