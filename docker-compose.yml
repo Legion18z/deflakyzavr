@@ -3,6 +3,6 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: 'sh -c "trap : TERM INT; sleep 86400 & wait"'
+    command: 'python -m deflakyzavr'
     volumes:
       - .:/deflakyzavr

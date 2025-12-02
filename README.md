@@ -67,7 +67,7 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 - --flaky_ticket_weight_after_deleted_comments: Weight that will increase after deleting comments
 
 ### Example
-
+Create setup.cfg and run command:
 ```
 python -m deflakyzavr --jira-server <jira_server> --jira-token <jira_token> -c setup.cfg
 ```

@@ -9,4 +9,5 @@ RUN python3 -m pip install -r requirements.txt
 
 RUN python3 -m pip install .
 
-CMD ["sh", "-c", "deflakyzavr"]
+ENTRYPOINT ["sh"]
+CMD ["-c", "python -m deflakyzavr"]
