@@ -14,7 +14,7 @@ class Deflakyzavr:
     def __init__(self, jira_client, jira_project,
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
-                 ticket_planned_field=None, duty_label=None,
+                 ticket_planned_field=None, duty_labels=None,
                  dry_run=False,
                  flaky_ticket_label=None,
                  flaky_ticket_status=None,
@@ -27,8 +27,7 @@ class Deflakyzavr:
         self._jira_issue_type = issue_type
         self._jira_components = jira_components
         self._jira_search_statuses = ['Взят в бэклог', 'Open']
-        self._jira_search_forbidden_symbols = ['[', ']', '"']
-        self._jira_duty_label = duty_label
+        self._jira_duty_labels = duty_labels
         self._jira_epic_link_field = epic_link_field
         self._jira_epic = jira_epic
         self._reporting_language = RU_REPORTING_LANG
@@ -52,10 +51,11 @@ class Deflakyzavr:
     def _get_already_created_duty_ticket(self) -> str:
         issue_key = ''
         statuses = ",".join([f'"{status}"' for status in self._jira_search_statuses])
+        labels = " and ".join([f'labels = {label}' for label in self._jira_duty_labels])
         search_prompt = (
             f'project = {self._jira_project} '
             f'and status in ({statuses}) '
-            f'and labels = {self._jira_duty_label} '
+            f'and {labels} '
             'ORDER BY created'
         )
 
@@ -84,7 +84,7 @@ class Deflakyzavr:
             'project': {'key': self._jira_project},
             'summary': issue_name,
             'issuetype': {'id': self._jira_issue_type if self._jira_issue_type else '3'},  # 3 is id for task
-            'labels': [self._jira_duty_label],
+            'labels': self._jira_duty_labels,
         }
         if self._jira_components:
             ticket_fields['components'] = [{'name': component} for component in self._jira_components]
@@ -147,7 +147,7 @@ class Deflakyzavr:
 def deflakyzavration(jira_client, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
-                     duty_label=None, dry_run=False,
+                     duty_labels=None, dry_run=False,
                      flaky_ticket_label=None,
                      flaky_ticket_status=None,
                      flaky_ticket_link_type=None,
@@ -162,7 +162,7 @@ def deflakyzavration(jira_client, project,
         jira_epic=jira_epic,
         issue_type=issue_type,
         ticket_planned_field=planned_field,
-        duty_label=duty_label,
+        duty_labels=duty_labels,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,

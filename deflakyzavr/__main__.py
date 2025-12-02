@@ -28,6 +28,7 @@ def make_param_getter(args: argparse.Namespace, config: ConfigParser, section: s
 
         logging.error(RU_REPORTING_LANG.REQUIRED_PARAM_ERROR.format(name=name))
         sys.exit(1)
+
     return get_param
 
 
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--jira-epic", help="JIRA epic link")
     parser.add_argument("--issue-type", help="JIRA issue type")
     parser.add_argument("--planned-field", help="ID of custom JIRA field for planned date")
-    parser.add_argument("--duty_label", help="JIRA task label")
+    parser.add_argument("--duty_labels", help="JIRA task labels")
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
 
     # Flaky Ticket
@@ -74,14 +75,14 @@ if __name__ == "__main__":
     jira_epic = get_param('jira_epic')
     issue_type = get_param('issue_type')
     planned_field = get_param('planned_field')
-    duty_label = get_param('duty_label')
+    duty_labels = get_param('duty_labels')
     dry_run = args.dry_run or config.getboolean('deflakyzavr', 'dry_run', fallback=False)
 
     # Flaky Ticket
     flaky_ticket_label = get_param('flaky_ticket_label', default='flaky')
     flaky_ticket_status = get_param('flaky_ticket_status', default='Взят в бэклог')
     flaky_ticket_link_type = get_param('flaky_ticket_link_type', default='has to be finished together with')
-    flaky_ticket_issue_types = get_param('flaky_ticket_issue_types', default=[3, 5, 12900])
+    flaky_ticket_issue_types = get_param('flaky_ticket_issue_types', default="3,5,12900")
     flaky_ticket_updated_days_ago = get_param('flaky_ticket_updated_days_ago', default=90)
 
     # Comment Cleaner
@@ -89,20 +90,26 @@ if __name__ == "__main__":
     flaky_ticket_limit_comments_count = get_param('flaky_ticket_limit_comments_count', default=30)
     flaky_ticket_deleted_comments_statuses = get_param(
         'flaky_ticket_deleted_comments_statuses',
-        default=['Взят в бэклог', 'Open', 'Reopened', 'In Progress', 'Code Review', 'Resolved'])
+        default="Взят в бэклог,Open,Reopened,In Progress,Code Review,Resolved")
     flaky_ticket_weight_field_name = get_param('flaky_ticket_weight_field_name', default='customfield_38040')
     flaky_ticket_weight_after_deleted_comments = get_param('flaky_ticket_weight_after_deleted_comments', default=101)
 
+    duty_labels = duty_labels.split(',')
+    jira_components = jira_components.split(',')
+    flaky_ticket_issue_types = flaky_ticket_issue_types.replace("'", "").split(',')
+    flaky_ticket_deleted_comments_statuses = flaky_ticket_deleted_comments_statuses.split(',')
+
     jira_client = LazyJiraTrier(server=jira_server, token=jira_token, dry_run=dry_run)
+
     deflakyzavration(
         jira_client=jira_client,
         project=jira_project,
         epic_link_field=epic_link_field,
-        jira_components=jira_components.split(','),
+        jira_components=jira_components,
         jira_epic=jira_epic,
         issue_type=issue_type,
         planned_field=planned_field,
-        duty_label=duty_label,
+        duty_labels=duty_labels,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
