@@ -15,6 +15,7 @@ class ReportingLangSet(NamedTuple):
     TICKET_AFTER_DELETED_COMMENTS: str
     TICKET_WEIGHT_UPDATED: str
     TICKET_COMMENT_AFTER_DELETED_COMMENTS: str
+    REQUIRED_PARAM_ERROR: str
 
 
 RU_REPORTING_LANG = ReportingLangSet(
@@ -44,6 +45,7 @@ RU_REPORTING_LANG = ReportingLangSet(
     TICKET_WEIGHT_UPDATED='Вес задачи обновлён: {current_value} → {new_value}',
     TICKET_COMMENT_AFTER_DELETED_COMMENTS='Было удалено {deleted_comments_count} комментариев. '
                                           'Вес задачи увеличен на {weight}.',
+    REQUIRED_PARAM_ERROR = 'Обязательный параметр {name} не найден ни в конфигурации, ни в аргументах командной строки.'
 )
 
 EN_REPORTING_LANG = ReportingLangSet(
@@ -73,4 +75,6 @@ EN_REPORTING_LANG = ReportingLangSet(
     TICKET_WEIGHT_UPDATED='The task weight has been updated: {current_value} → {new_value}',
     TICKET_COMMENT_AFTER_DELETED_COMMENTS='{deleted_comments_count} comments were deleted. '
                                           'Task weight increased by {weight}.',
+    REQUIRED_PARAM_ERROR='Required parameter {name} was not found in either the configuration or '
+                         'the command line arguments.'
 )
