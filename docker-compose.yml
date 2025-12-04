@@ -3,6 +3,5 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    command: 'python -m deflakyzavr'
     volumes:
       - .:/deflakyzavr

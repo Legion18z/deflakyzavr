@@ -69,7 +69,10 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 ### Example
 Create setup.cfg and run command:
 ```
-python -m deflakyzavr --jira-server <jira_server> --jira-token <jira_token> -c setup.cfg
+docker compose run app
 ```
 
-
+Or if you need to redefine variables:
+```
+docker compose run app -c "python -m deflakyzavr --jira-server <jira_server> --jira-token <jira_token> -c setup.cfg"
+```
