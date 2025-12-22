@@ -16,6 +16,8 @@ class ReportingLangSet(NamedTuple):
     TICKET_WEIGHT_UPDATED: str
     TICKET_COMMENT_AFTER_DELETED_COMMENTS: str
     REQUIRED_PARAM_ERROR: str
+    DESCRIPTION_FILE_NOT_FOUND: str
+    DESCRIPTION_FILE_READ_ERROR: str
 
 
 RU_REPORTING_LANG = ReportingLangSet(
@@ -45,7 +47,9 @@ RU_REPORTING_LANG = ReportingLangSet(
     TICKET_WEIGHT_UPDATED='Вес задачи обновлён: {current_value} → {new_value}',
     TICKET_COMMENT_AFTER_DELETED_COMMENTS='Было удалено {deleted_comments_count} комментариев. '
                                           'Вес задачи увеличен на {weight}.',
-    REQUIRED_PARAM_ERROR = 'Обязательный параметр {name} не найден ни в конфигурации, ни в аргументах командной строки.'
+    REQUIRED_PARAM_ERROR = 'Обязательный параметр {name} не найден ни в конфигурации, ни в аргументах командной строки.',
+    DESCRIPTION_FILE_NOT_FOUND='Файл с описанием для Jira-задачи не найден по пути: {path}.',
+    DESCRIPTION_FILE_READ_ERROR='Ошибка при чтении файла с описанием для Jira-задачи по пути: {path}.',
 )
 
 EN_REPORTING_LANG = ReportingLangSet(
@@ -76,5 +80,7 @@ EN_REPORTING_LANG = ReportingLangSet(
     TICKET_COMMENT_AFTER_DELETED_COMMENTS='{deleted_comments_count} comments were deleted. '
                                           'Task weight increased by {weight}.',
     REQUIRED_PARAM_ERROR='Required parameter {name} was not found in either the configuration or '
-                         'the command line arguments.'
+                         'the command line arguments.',
+    DESCRIPTION_FILE_NOT_FOUND='The description file for Jira issue was not found at path: {path}.',
+    DESCRIPTION_FILE_READ_ERROR = 'Error reading description file for Jira issue at path: {path}.',
 )

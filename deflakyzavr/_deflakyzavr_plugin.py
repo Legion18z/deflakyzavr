@@ -15,6 +15,7 @@ class Deflakyzavr:
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_labels=None,
+                 duty_ticket_description_path=None,
                  dry_run=False,
                  flaky_ticket_label=None,
                  flaky_ticket_status=None,
@@ -33,6 +34,7 @@ class Deflakyzavr:
         self._reporting_language = RU_REPORTING_LANG
         self._jira_planned_field = ticket_planned_field
         self._dry_run = dry_run
+        self._duty_ticket_description_path = duty_ticket_description_path
         self._jira_flaky_ticket_label = flaky_ticket_label
         self._jira_flaky_ticket_status = flaky_ticket_status
         self._jira_flaky_ticket_link_type = flaky_ticket_link_type
@@ -75,6 +77,22 @@ class Deflakyzavr:
             )
         return issue_key
 
+    def _get_ticket_description(self) -> str:
+        description = ''
+        try:
+            with open(self._duty_ticket_description_path, 'r', encoding='utf-8') as file:
+                description = file.read()
+        except FileNotFoundError:
+            logging.warning(
+                self._reporting_language.DESCRIPTION_FILE_NOT_FOUND.format(path=self._duty_ticket_description_path)
+            )
+        except IOError:
+            logging.warning(
+                self._reporting_language.DESCRIPTION_FILE_READ_ERROR.format(path=self._duty_ticket_description_path)
+            )
+
+        return description
+
     def _format_ticket_fields(self) -> dict:
         planned_date = self._get_next_monday()
         issue_name = self._reporting_language.NEW_TICKET_SUMMARY.format(
@@ -92,6 +110,9 @@ class Deflakyzavr:
             ticket_fields[self._jira_epic_link_field] = self._jira_epic
         if self._jira_planned_field:
             ticket_fields[self._jira_planned_field] = planned_date.isoformat()
+        if self._duty_ticket_description_path:
+             ticket_fields['description'] = self._get_ticket_description()
+
         return ticket_fields
 
     def create_duty_ticket(self) -> str:
@@ -147,7 +168,8 @@ class Deflakyzavr:
 def deflakyzavration(jira_client, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
-                     duty_labels=None, dry_run=False,
+                     duty_labels=None, duty_ticket_description_path=None,
+                     dry_run=False,
                      flaky_ticket_label=None,
                      flaky_ticket_status=None,
                      flaky_ticket_link_type=None,
@@ -163,6 +185,7 @@ def deflakyzavration(jira_client, project,
         issue_type=issue_type,
         ticket_planned_field=planned_field,
         duty_labels=duty_labels,
+        duty_ticket_description_path=duty_ticket_description_path,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
