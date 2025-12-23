@@ -56,6 +56,7 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 - --planned-field: ID of custom JIRA field for planned date
 - --duty-labels: JIRA task labels (default: flaky_duty,tech_debt_qa)
 - --duty-ticket-description-path: JIRA duty-task description path (default: <empty string>)
+- --duty-ticket-original-estimate: JIRA duty-task original estimate (default: 4h)
 - --dry-run: Dry run mode
 - --flaky-ticket-label: JIRA issue label for searching flaky tickets (default: flaky)
 - --flaky-ticket-status: JIRA issue status for searching flaky tickets (default: 'Взят в бэклог')

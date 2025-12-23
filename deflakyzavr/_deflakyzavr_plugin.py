@@ -15,6 +15,7 @@ class Deflakyzavr:
                  issue_type=None, epic_link_field=None,
                  jira_components=None, jira_epic=None,
                  ticket_planned_field=None, duty_labels=None,
+                 duty_ticket_original_estimate=None,
                  duty_ticket_description_path=None,
                  dry_run=False,
                  flaky_ticket_label=None,
@@ -35,6 +36,7 @@ class Deflakyzavr:
         self._jira_planned_field = ticket_planned_field
         self._dry_run = dry_run
         self._duty_ticket_description_path = duty_ticket_description_path
+        self._duty_ticket_original_estimate = duty_ticket_original_estimate
         self._jira_flaky_ticket_label = flaky_ticket_label
         self._jira_flaky_ticket_status = flaky_ticket_status
         self._jira_flaky_ticket_link_type = flaky_ticket_link_type
@@ -111,8 +113,11 @@ class Deflakyzavr:
         if self._jira_planned_field:
             ticket_fields[self._jira_planned_field] = planned_date.isoformat()
         if self._duty_ticket_description_path:
-             ticket_fields['description'] = self._get_ticket_description()
-
+            ticket_fields['description'] = self._get_ticket_description()
+        if self._duty_ticket_original_estimate:
+            ticket_fields['timetracking'] = {
+                'originalEstimate': self._duty_ticket_original_estimate
+            }
         return ticket_fields
 
     def create_duty_ticket(self) -> str:
@@ -169,7 +174,7 @@ def deflakyzavration(jira_client, project,
                      issue_type=None, epic_link_field=None, jira_epic=None,
                      jira_components=None, planned_field=None,
                      duty_labels=None, duty_ticket_description_path=None,
-                     dry_run=False,
+                     duty_ticket_original_estimate=None, dry_run=False,
                      flaky_ticket_label=None,
                      flaky_ticket_status=None,
                      flaky_ticket_link_type=None,
@@ -186,6 +191,7 @@ def deflakyzavration(jira_client, project,
         ticket_planned_field=planned_field,
         duty_labels=duty_labels,
         duty_ticket_description_path=duty_ticket_description_path,
+        duty_ticket_original_estimate=duty_ticket_original_estimate,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,
