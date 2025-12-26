@@ -45,7 +45,9 @@ if __name__ == "__main__":
     parser.add_argument("--jira-epic", help="JIRA epic link")
     parser.add_argument("--issue-type", help="JIRA issue type")
     parser.add_argument("--planned-field", help="ID of custom JIRA field for planned date")
-    parser.add_argument("--duty_labels", help="JIRA task labels")
+    parser.add_argument("--duty-labels", help="JIRA task labels")
+    parser.add_argument("--duty-ticket-description-path", help="JIRA duty-task description path")
+    parser.add_argument("--duty-ticket-original-estimate", help="JIRA duty-task original estimate")
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
 
     # Flaky Ticket
@@ -76,6 +78,8 @@ if __name__ == "__main__":
     issue_type = get_param('issue_type')
     planned_field = get_param('planned_field')
     duty_labels = get_param('duty_labels')
+    duty_ticket_description_path = get_param('duty_ticket_description_path', default='')
+    duty_ticket_original_estimate = get_param('duty_ticket_original_estimate', default='4h')
     dry_run = args.dry_run or config.getboolean('deflakyzavr', 'dry_run', fallback=False)
 
     # Flaky Ticket
@@ -110,6 +114,8 @@ if __name__ == "__main__":
         issue_type=issue_type,
         planned_field=planned_field,
         duty_labels=duty_labels,
+        duty_ticket_description_path=duty_ticket_description_path,
+        duty_ticket_original_estimate=duty_ticket_original_estimate,
         dry_run=dry_run,
         flaky_ticket_label=flaky_ticket_label,
         flaky_ticket_status=flaky_ticket_status,

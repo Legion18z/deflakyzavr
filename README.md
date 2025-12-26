@@ -23,6 +23,7 @@ jira_epic = EPIC-123
 issue_type = 3
 planned_field = customfield_10012
 duty_labels = flaky_duty,tech_debt_qa
+duty_ticket_description_path = duty_ticket_description_template.txt
 dry_run = false
 flaky_ticket_label= flaky
 flaky_ticket_status = Backlog
@@ -53,7 +54,9 @@ python -m deflakyzavr --config path/to/setup.cfg [options]
 - --jira-epic: JIRA epic link
 - --issue-type: JIRA issue type (default: 3)
 - --planned-field: ID of custom JIRA field for planned date
-- --duty_labels: JIRA task labels (default: flaky_duty,tech_debt_qa)
+- --duty-labels: JIRA task labels (default: flaky_duty,tech_debt_qa)
+- --duty-ticket-description-path: JIRA duty-task description path (default: <empty string>)
+- --duty-ticket-original-estimate: JIRA duty-task original estimate (default: 4h)
 - --dry-run: Dry run mode
 - --flaky-ticket-label: JIRA issue label for searching flaky tickets (default: flaky)
 - --flaky-ticket-status: JIRA issue status for searching flaky tickets (default: 'Взят в бэклог')
