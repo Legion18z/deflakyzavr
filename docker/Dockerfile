@@ -1,4 +1,6 @@
-FROM python:3.12.8-alpine3.20
+ARG PYTHON_IMAGE_VERSION=python:3.12.8-alpine3.20
+
+FROM ${PYTHON_IMAGE_VERSION}
 LABEL description="Deflakyzavr (https://github.com/Legion18z/deflakyzavr) plugin."
 
 WORKDIR /deflakyzavr
