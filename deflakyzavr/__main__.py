@@ -1,7 +1,7 @@
 import argparse
 import sys
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Type
 from configparser import ConfigParser
 
 from deflakyzavr._deflakyzavr_plugin import deflakyzavration
@@ -17,14 +17,14 @@ def read_config(config_file: str) -> ConfigParser:
 
 
 def make_param_getter(args: argparse.Namespace, config: ConfigParser, section: str = 'deflakyzavr') -> Callable:
-    def get_param(name: str, default: Any = None) -> str:
+    def get_param(name: str, default: Any = None, cast_type: Type = str) -> str:
         value = getattr(args, name)
         if value is not None:
-            return value
+            return cast_type(value)
         if config.has_option(section, name):
-            return config.get(section, name)
+            return cast_type(config.get(section, name))
         if default is not None:
-            return default
+            return cast_type(default)
 
         logging.error(RU_REPORTING_LANG.REQUIRED_PARAM_ERROR.format(name=name))
         sys.exit(1)
@@ -90,13 +90,14 @@ if __name__ == "__main__":
     flaky_ticket_updated_days_ago = get_param('flaky_ticket_updated_days_ago', default=90)
 
     # Comment Cleaner
-    flaky_ticket_allowed_comments_count = get_param('flaky_ticket_allowed_comments_count', default=100)
-    flaky_ticket_limit_comments_count = get_param('flaky_ticket_limit_comments_count', default=30)
+    flaky_ticket_allowed_comments_count = get_param('flaky_ticket_allowed_comments_count', default=100, cast_type=int)
+    flaky_ticket_limit_comments_count = get_param('flaky_ticket_limit_comments_count', default=30, cast_type=int)
     flaky_ticket_deleted_comments_statuses = get_param(
         'flaky_ticket_deleted_comments_statuses',
         default="Взят в бэклог,Open,Reopened,In Progress,Code Review,Resolved")
     flaky_ticket_weight_field_name = get_param('flaky_ticket_weight_field_name', default='customfield_38040')
-    flaky_ticket_weight_after_deleted_comments = get_param('flaky_ticket_weight_after_deleted_comments', default=101)
+    flaky_ticket_weight_after_deleted_comments = get_param('flaky_ticket_weight_after_deleted_comments', default=101,
+                                                           cast_type=int)
 
     duty_labels = duty_labels.split(',')
     jira_components = jira_components.split(',')
